@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Runner Number Game</title>
+<style>
+  body {
+    margin: 0;
+    background: #111;
+    overflow: hidden;
+    touch-action: none;
+    font-family: sans-serif;
+  }
+
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(#444, #222);
+  }
+
+  .player {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    background: #4af;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+
+  .gate {
+    position: absolute;
+    width: 80px;
+    height: 40px;
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    text-align: center;
+    line-height: 40px;
+    border-radius: 8px;
+  }
+
+  .x2 {
+    background: gold;
+  }
+
+  .boss {
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: crimson;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="player" class="player">10</div>
+  <div class="gate" style="top:30%; left:20%;">+5</div>
+  <div class="gate x2" style="top:45%; left:60%;">×2</div>
+  <div id="boss" class="boss">50</div>
+</div>
+
+<script>
+const player = document.getElementById("player");
+const boss = document.getElementById("boss");
+const gates = document.querySelectorAll(".gate");
+
+let power = 10;
+let px = window.innerWidth / 2;
+let py = window.innerHeight * 0.8;
+let speed = 1.5;
+let bossPower = 50;
+
+let touchX = px;
+
+document.addEventListener("touchstart", e => {
+  touchX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchmove", e => {
+  touchX = e.touches[0].clientX;
+});
+
+function hit(a, b) {
+  const ar = a.getBoundingClientRect();
+  const br = b.getBoundingClientRect();
+  return !(ar.right < br.left || ar.left > br.right || ar.bottom < br.top || ar.top > br.bottom);
+}
+
+function update() {
+  // 指操作
+  px += (touchX - px) * 0.1;
+  player.style.left = px + "px";
+
+  // 前進（ゲートが下に来る）
+  gates.forEach(gate => {
+    let top = gate.offsetTop + speed;
+    gate.style.top = top + "px";
+
+    if (hit(player, gate)) {
+      if (gate.textContent.includes("×2")) {
+        power *= 2;
+      } else {
+        power += parseInt(gate.textContent);
+      }
+      player.textContent = power;
+      gate.remove();
+    }
+  });
+
+  // ボス接近
+  let bossTop = boss.offsetTop + speed;
+  boss.style.top = bossTop + "px";
+
+  // ボス戦
+  if (hit(player, boss) && power > 0) {
+    power--;
+    bossPower--;
+    player.textContent = power;
+    boss.textContent = bossPower;
+  }
+
+  if (bossPower <= 0) {
+    boss.textContent = "WIN";
+    speed = 0;
+  }
+
+  if (power <= 0) {
+    player.textContent = "LOSE";
+    speed = 0;
+  }
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>
